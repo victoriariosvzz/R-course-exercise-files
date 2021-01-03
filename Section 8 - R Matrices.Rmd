@@ -1,0 +1,207 @@
+---
+title: "Section 8 - R Matrices"
+author: "Victoria"
+date: "2/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ***Creating a matrix***
+To create a matrix out of a vector
+```{r}
+v <- 1:10 #easy way to create a vector
+
+matrix(v) #creates a matrix with 10 rows and 1 column
+```
+To create a matrix from zero
+```{r}
+matrix(v,nrow = 2) # I want a matrix with 2 rows and whatever columns with the values of v
+matrix(1:12,byrow = FALSE, nrow = 4) # it starts filling the values vertically
+matrix(1:12,byrow = TRUE, nrow = 4) # it starts filling the values horizontally (row by row)
+```
+
+```{r}
+goog <- c(450,451,452,445,468)
+msft <- c(230,231,232,233,220)
+
+stocks <-c(goog,msft) #to combine both vectors in one
+print(stocks)
+
+stock.matrix <- matrix(stocks, byrow = TRUE, nrow = 2)
+print(stock.matrix)
+
+#To name the rows and columns values
+days <- c("Mon","Tue","Wed","Thu","Fri")
+st.names <- c("GOOG","MSFT")
+
+colnames(stock.matrix) <- days
+rownames(stock.matrix) <- st.names
+print(stock.matrix)
+```
+
+# ***Matrix Arithmetic***
+All the operations made to the matrix are made element by element
+```{r}
+mat <- matrix(1:25, byrow = TRUE, nrow = 5)
+mat
+# Examples of operations
+mat * 2
+mat - 2
+mat / 2
+mat^2
+mat > 15
+
+#We can also filter out some values of the matrix in a form of a vector
+mat.f <- mat[mat>15]
+mat.f
+
+mat * mat # element by element multiplication
+mat %*% mat # real linear algebra matrix multiplication
+```
+
+# ***Matrix operations***
+We start with the previous matrix
+```{r}
+goog <- c(450,451,452,445,468)
+msft <- c(230,231,232,233,220)
+
+stocks <-c(goog,msft) #to combine both vectors in one
+print(stocks)
+
+stock.matrix <- matrix(stocks, byrow = TRUE, nrow = 2)
+print(stock.matrix)
+
+#To name the rows and columns values
+days <- c("Mon","Tue","Wed","Thu","Fri")
+st.names <- c("GOOG","MSFT")
+
+colnames(stock.matrix) <- days
+rownames(stock.matrix) <- st.names
+print(stock.matrix)
+```
+Operations on the matrix
+```{r}
+colSums(stock.matrix) #it adds all the values on each column
+rowSums(stock.matrix) #it adds all the values on each row
+
+rowMeans(stock.matrix) #mean value of the rows
+colMeans(stock.matrix) #mean value of the columns
+```
+Exercise: Add a vector as a new row of your previous matrix
+```{r}
+Fbook <- c(111,112,113,114,115)
+# Function rbind
+tech.stocks <- rbind(stock.matrix,Fbook) # rbind adds the selected vector as a new row of the selected matrix
+tech.stocks
+# Function cbind
+avg <- rowMeans(tech.stocks)
+avg
+tech.stocks <- cbind(tech.stocks,avg) # rbind adds the selected vector as a new column of the selected matrix
+tech.stocks
+```
+
+# ***Matrix selection and Indexing***
+Creating the matrix
+```{r}
+mat <- matrix(1:50, byrow = TRUE, nrow = 5)
+mat
+```
+Lets index!
+```{r}
+mat[1,] #all the columns of the 1st row
+mat[,1] #all the rows of the 1st column
+mat[] #all the values of the matrix
+mat[1:3,] #all the columns of the rows 1 to 3
+mat[1:2,1:3]
+mat[,9:10]
+mat[2:3,5:6]
+```
+
+# ***Factor and categorical matrices***
+
+**Factor function** is useful to create categorical matrices
+There are 2 types of categorical variables:
+
+- **Nominal:** There's NO order  
+- **Ordinal:** There's order (like numbers, temp, letters a to z)  
+
+Nominal example:
+```{r}
+animal <- c("dog","cat","dog","cat","cat")
+id <- c(1,2,3,4,5)
+
+factor(animal) # Finds the categories within the values of our vector
+fact.ani <- factor(animal)
+
+```
+Ordinal example with temps:
+```{r}
+ord.cat <- c("cold","med","hot")
+temps <- c("cold","med","hot","hot","hot","cold","med")
+temps
+fact.temp <- factor(temps, ordered = TRUE, levels = c("cold","med","hot")) #we can tell the factor function our levels of categorization
+fact.temp
+```
+
+We can use this to find the # of times a value appears in a vector
+```{r}
+# Summary function
+summary(fact.temp) #of the categorized vector
+
+summary(temps) # of the uncategorized vector (not the expected results)
+```
+
+# **...R Matrix Exercises...**
+
+Create 2 vectors A and B, where A is (1,2,3) and B is (4,5,6). With these vectors, use the cbind() or rbind() function to create a 2 by 3 matrix from the vectors. You'll need to figure out which of these binding functions is the correct choice.
+
+```{r}
+A <- 1:3
+B <- 4:6
+matrix.AB <- rbind(A,B)
+matrix.AB
+```
+
+Create a 3 by 3 matrix consisting of the numbers 1-9. Create this matrix using the shortcut 1:9 and by specifying the nrow argument in the matrix() function call. Assign this matrix to the variable mat
+```{r}
+mat <- matrix(1:9, nrow = 3)
+mat
+```
+Confirm that mat is a matrix using is.matrix()
+```{r}
+is.matrix(mat)
+```
+
+Create a 5 by 5 matrix consisting of the numbers 1-25 and assign it to the variable mat2. The top row should be the numbers 1-5.
+```{r}
+mat2 <- matrix(1:25,byrow = TRUE, nrow = 5)
+mat2
+```
+
+Using indexing notation, grab a sub-section of mat2 from the previous exercise that looks like this: 
+[7,8]
+[12,13]
+```{r}
+mat2[2:3,2:3]
+```
+Using indexing notation, grab a sub-section of mat2 from the previous exercise that looks like this:
+[19,20]
+[24,25]
+```{r}
+mat2[4:5,4:5]
+```
+What is the sum of all the elements in mat2?
+```{r}
+sum(mat2)
+```
+Ok time for our last exercise! Find out how to use runif() to create a 4 by 5 matrix consisting of 20 random numbers (4*5=20).
+```{r}
+v <- runif(20, min = 0, max = 100) #creates a vector of random numbers from min to max
+v
+v.mat <- matrix(v,byrow = FALSE, nrow = 4)
+v.mat
+```
+

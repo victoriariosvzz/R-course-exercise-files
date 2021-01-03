@@ -1,0 +1,258 @@
+---
+title: "Video's notes"
+author: "Victoria"
+date: "2/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ***Basic arithmetic***
+
+### Addition
+```{r}
+1 + 1
+```
+
+### Subtraction
+```{r}
+5 - 3
+```
+
+### Division
+```{r}
+2/3
+```
+
+### Power
+```{r}
+2^3
+```
+
+### Product
+```{r}
+2 * 3
+```
+
+### Remainder (Modulus)
+```{r}
+3 %% 2
+```
+
+# ***Variables***
+```{r}
+variable <- 100 #to assign it
+variable #to print it
+bank <- 1000
+bank
+
+#This are good practices to name variables:
+bank.account <-123
+bankAccount <-133
+
+#Assigning results into variables
+deposit <- 100
+total <- bank.account + deposit
+total #printing the result
+
+```
+
+# ***Data types***
+```{r}
+1 #integer
+1.5 #float or decimals
+"hello" #character
+TRUE #logical or boolean
+
+class(deposit) #to check the class of a variable
+```
+
+# ***Vector***
+```{r}
+nvec <- c(1,2,3,4,5) #a vector is created using the "combination function" [c()], each number represents a column
+nvec #we print it
+
+cvec <- c("U","S","A")
+cvec
+
+lvec <- c(T, F)
+lvec
+```
+
+### Combining data types in a vector
+Rule: **never combine** different data types in a vector, or it will forcefully change them to the same data type, e.g. TRUE in a numeric vector changes to "1".
+```{r}
+v <- c(TRUE, 20, 40)
+v
+class(v)
+```
+
+### Vector names
+We can assign a name to **each value in a vector**, for example, to associate days with a vector of temps values
+```{r}
+temps <- c(72,71,68,73,69,75,23)
+temps
+
+names(temps) <- c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")
+temps #now the vector has a name for each value
+```
+Another way to do it, faster, is by creating the names vector independently and then use it
+```{r}
+days <- c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")
+names(temps) <- days
+temps
+```
+
+# ***Vector operations***
+```{r}
+v1 <- c(1,2,3)
+v2 <- c(5,6,7)
+v1 + v2 #It will make the operation ELEMENT BY ELEMENT
+v1 * v2
+v1 - v2
+v1 / v2
+
+# To sum all the elements in a numeric vector
+sum(v1)
+sum.of.v1 <- sum(v1)
+sum.of.v1
+
+# mean of a vector
+mean(v1)
+
+# standard deviation of a vector
+sd(v1)
+
+# maximum value
+max(v1)
+
+# minimum value
+min(v1)
+
+# product of all the elements in a vector
+prod(v1)
+```
+
+# ***Comparison operators***
+They will return a TRUE or FALSE according to the operation
+```{r}
+5 > 6
+5 < 6
+5 <= 6
+2 == 3 #equality
+2 != 4 #inequality
+
+my.var <- 2
+my.var > 5
+```
+
+When comparing vector values, it will return a **vector result** filled with TRUE and FALSE
+```{r}
+v <- c(1,2,3,4,5)
+v < 2 # Comparison is done ELEMENT BY ELEMENT
+v == 3
+```
+
+We can also compare two vectors
+```{r}
+v2 <- c(10, 20, 30, 40, 50)
+v < v2
+```
+
+# ***Vector indexing and slicing***
+NOTE: Indexing starts at number 1
+```{r}
+v1 <- c(100,200,300)
+v2 <- c("a","b","c")
+v1
+v2
+
+#Lets start indexing values from the vectors
+v1[1]
+v1[3]
+v2[3]
+```
+Slicing means we're gonna take multiple items from a vector at the same time
+```{r}
+#Lets start slicing
+v1[c(1,2)] #to grab the 1st and 2nd element
+v2[c(1,3)] #to grab a and c
+
+#to grab continuous elements
+v <- c(1,2,3,4,5,6,7,8,9,10)
+v
+v[2:5] #To grab from the 2nd element till the 5th element of the vector
+v[7:10]
+```
+
+Lets assign names to the values of our slice, and **we can actually index it as the name given instead of the number of element**
+```{r}
+v.slice <- v[7:10]
+v.slice
+v.names <- c("a","b","c","d")
+
+names(v.slice) <- v.names #names assigned
+v.slice
+
+# We can index the values as the names given
+v.slice[2]
+v.slice["b"]
+v.slice[c("c","a","d")]
+```
+
+To grab only values greater than 2
+```{r}
+v
+v.labels <- c("a","b","c","d","e","f","g","h","i","j")
+names(v) <- v.labels
+
+v[v>2] # it returns only the values that are greater than 2
+
+# Another way to do it
+my.filter <- v>2
+v[my.filter]
+```
+# ***To search for help and info about terms and funcitons in R***
+```{r}
+help("vector")
+??vector
+help.search("vector")
+```
+
+# ***....R Basics Exercises...***
+What is 2 to the power of 5
+```{r}
+2^5
+```
+Create a vector called stock.prices with the following data points: 23,27,23,21,34
+```{r}
+stock.prices <- c(23,27,23,21,34)
+```
+Assign names to the price data points relating to the day of the week, starting with Mon, Tue, Wed, etc...
+```{r}
+stock.names <- c("Mon","Tue","Wed","Thu","Fri")
+names(stock.prices) <- stock.names
+stock.prices
+```
+What was the average (mean) stock price for the week? (You may need to reference a built-in function)
+```{r}
+mean(stock.prices)
+```
+Create a vector called over.23 consisting of logicals that correspond to the days where the stock price was more than $23
+```{r}
+over.23 <- stock.prices[stock.prices>23]
+```
+
+Use the over.23 vector to filter out the stock.prices vector and only return the day and prices where the price was over $23
+
+```{r}
+over.23
+```
+
+Use a built-in function to find the day the price was the highest
+```{r}
+max(stock.prices)
+```
+
