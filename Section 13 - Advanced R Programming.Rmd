@@ -1,0 +1,194 @@
+---
+title: "Section 13 - Advanced R Programming"
+author: "Victoria"
+date: "6/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Built-in R Features and Functions**
+## Seq(): Create a sequence
+```{r}
+seq(0,100,by=2) #creates a vector from 0 to 100, with a step-size of 2
+seq(0,24,by=10)
+```
+## Sort(): Sort a vector
+```{r}
+v <- c(1,4,7,2,13,3,11)
+v
+sort(v) #it sorts the values in ascending order
+sort(v,decreasing = TRUE) #it sorts the values in descending order
+cv <- c("a","c","d")
+sort(cv)
+```
+## rev(): Reverse elements in object
+```{r}
+v <- 1:10
+v
+rev(v)
+```
+## append(): Merge objects together (works on vectors and lists)
+```{r}
+v <- 1:10
+v2 <- 35:40
+append(v,v2) #it merges them together
+```
+## Checking the **Data type** in R
+```{r}
+v <- c(1,2,3)
+
+is.vector(v) #we check if it's a vector or not
+is.data.frame(mtcars)
+```
+## To **convert into another Data type**
+```{r}
+v <- 1:3
+
+as.list(v)
+as.matrix(v)
+```
+
+#**Apply**
+##Sample function: to sample objects from a vector
+```{r}
+sample(x = 1:100,1) #we get a certain sample of random numbers from a vector x
+```
+##Apply function: to apply a function over all the values in a vector or list
+```{r}
+v <- c(1,2,3,4,5)
+
+addrand <- function(x){
+  ran <- sample(1:100,1)
+  return(x+ran)
+}
+
+print(addrand(10))
+
+result <- lapply(v,addrand) #as a list
+print(result)
+
+result <- sapply(v,addrand) #as a vector
+print(result)
+```
+Another example
+```{r}
+v <- 1:5
+
+times2 <- function(num){
+  return(num*2)
+}
+print(v)
+
+result <- sapply(v,times2)
+print(result)
+```
+##Anonymous functions
+```{r}
+v <- 1:5
+
+result <- sapply(v,function(num){num*2}) #we just created the anonymous function and used it
+print(result)
+```
+
+```{r}
+v <- 1:5
+
+add_choice <- function(num,choice){
+  return(num+choice)
+}
+
+print(sapply(v,add_choice,choice=100))
+```
+# **Math functions in R**
+##abs():absolute value
+```{r}
+abs(-2)
+abs(2)
+v <- c(-1,-2,-3)
+abs(v)
+```
+##sum(): the sum of a vector
+```{r}
+sum(v)
+```
+##mean(): the mean of a vector
+```{r}
+mean(v)
+```
+##round(): round values (additional arguments to nearest)
+```{r}
+round(2.88887,digits = 0)
+```
+**TIP: Google "R reference card" for the most useful cheat sheet of functions in R**
+
+#**Regular Expressions**
+##grepl: returns a logical
+##grep: returns an index
+```{r}
+text <- "Hi there, how are you?"
+text
+
+grepl("how",text) #to check if there's that element in the variable
+grepl("dog",text)
+```
+```{r}
+v <- c("a","b","c","d")
+grepl("b",v) #to find if the statement is true or false
+grep("b",v) #returns the indexes in which the value appears
+
+```
+
+#**Date and Timestamps**
+## Dates
+```{r}
+Sys.Date() #year-month-day
+
+today <- Sys.Date()
+class(today)
+```
+
+We normally get the input date as a character, so we need to transfrom it into a date object in the **STANDARD DATE FORMAT!**
+```{r}
+c <- "1990-01-01"
+class(c)
+c.Date <- as.Date(c)
+class(c.Date)
+```
+sometimes we don't get the dates in the needed format
+```{r}
+## This will give NA(s) in some locales; setting the C locale
+## as in the commented lines will overcome this on most systems.
+## lct <- Sys.getlocale("LC_TIME"); Sys.setlocale("LC_TIME", "C")
+x <- c("1jan1960", "2jan1960", "31mar1960", "30jul1960")
+z <- as.Date(x, "%d%b%Y")
+## Sys.setlocale("LC_TIME", lct)
+
+my.date <- as.Date("Nov-03-90",format = "%b-%d-%y")
+my.date
+
+my.date1 <- as.Date("June,01,2002",format="%B,%d,%Y")
+my.date1
+```
+**as.Date format code list:**
+- %d Day (decimal)  
+- %m Month (decimal)  
+- %b Month (abbreviated)  
+- %B Month (full name)  
+- %y Year (2 digit)  
+- %Y Year (4 digit)  
+
+## **Time information**
+R stores time info in POSIXct class
+```{r}
+#to convert strings into data type for time stamp information
+as.POSIXct("11:02:03",format="%H:M:%S") #we actually don't use this, we use the following instead:
+
+help("strptime") #here we find all the glossary of conversion from string to time info
+strptime("11:02:03",format="%H:%M:%S") #now, it is a time data!!
+
+
+```
+
