@@ -1,0 +1,307 @@
+---
+title: "Section 12 - R Programming Basics"
+author: "Victoria"
+date: "5/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Logical operators**
+AND, OR and NOT
+```{r}
+# AND (all should be TRUE to be TRUE)
+x <- 10
+x < 20 & x > 5 # is x < 20 and x > 5 ?
+(x<20) & (x>5) & (x==10)
+(x<20) & (x>5) & (x==1)
+
+# OR (all should be FALSE to be FALSE)
+(x<20) | (x>5) | (x==1)
+
+# NOT (inverse to what you're writing)
+(10 == 1)
+!(10 == 1) # is this NOT TRUE?
+```
+## Realistic use cases
+```{r}
+df <- mtcars
+head(df)
+
+df[df$cyl > 4,] #all the rows in which cyl > 4
+subset(df,cyl > 4)
+df[,c("mpg","cyl")]
+```
+Using the logical operators
+```{r}
+df[(df$mpg > 20) & (df$hp > 100),]
+df[(df$mpg > 20) | (df$hp > 100),]
+```
+
+#**If, else and ifelse statement**
+```{r}
+x <- 10
+if(x == 10){
+  #code to run if it's true
+  print("x is equal to 10!")
+}else if(x == 12){
+  print("x is equal to 12!")
+}else{
+  print("x was not equal to 10 or 12")
+}
+```
+
+## **..Conditional statements training exercises..**
+Example: Write a script that prints "Hello" if the variable x is equal to 1
+```{r}
+x <- 1
+if(x == 1){
+  print("Hello")
+}
+```
+Ex 1: Write a script that will print "Even Number" if the variable x is an even number, otherwise print "Not Even":
+```{r}
+x <- 1
+if (x %% 2 == 0){
+  print("Even number")
+}else{
+  print("Not even")
+}
+```
+Ex 2: Write a script that will print 'Is a Matrix' if the variable x is a matrix, otherwise print "Not a Matrix". Hint: You may want to check out help(is.matrix)
+```{r}
+x <- matrix(1:25, nrow = 5)
+if (is.matrix(x) == TRUE){
+  print("Is a Matrix")
+}else{
+  print("Not a Matrix")
+}
+```
+Ex 3: Create a script that given a numeric vector x with a length 3, will print out the elements in order from high to low. You must use if,else if, and else statements for your logic. (This code will be relatively long)
+```{r}
+x <- c(3,7,1)
+if (length(x) == 3){
+  xorder <- order(x,decreasing = TRUE) #we take the indexes in descending order
+  print(x[c(xorder)]) #we print the numbers in order
+}
+```
+Ex 4: Write a script that uses if,else if, and else statements to print the max element in a numeric vector with 
+3 elements.
+```{r}
+x <- c(20, 10, 1)
+if (length(x) == 3){
+  print(max(x))
+}
+```
+
+## **While loops**
+```{r}
+x <- 0
+while(x<10){
+  print(paste0("x is: ",x))
+  x <- x+1
+  
+  if (x==5){
+    print("x is now equal to 5, break the loop!")
+    break
+  }
+}
+```
+
+##**For loops**
+```{r}
+v <- c(1,2,3) #with a vector
+
+for (variable in v) { #it operates with each variable in the vector
+  result <- variable + 10
+  print(result)
+}
+
+my.list <- list(c(1,2,3),mtcars,12) #with a list
+
+for (item in my.list) {
+  print(item)
+}
+
+mat <- matrix(1:25,nrow=5)
+for (num in mat){
+  print(num) #its gonna print BY COLUMNS (first ALL column 1, then all column 2, etc.)
+}
+```
+Nested For loops
+```{r}
+mat <- matrix(1:25,nrow=5)
+
+for (row in 1:nrow(mat)) {
+  for (col in 1:ncol(mat)) {
+    print(paste0("The element at row: ",row," and col:",col," is ",mat[row,col]))
+  }
+}
+```
+
+##**Functions**
+```{r}
+name_of_func <- function(input1,input2,input3=45){
+  result <- input1 + input2
+  return(result)
+}
+
+name_of_func(1,2) #using it
+```
+
+```{r}
+hello <- function(){
+  print("Hello")
+}
+
+hello() #we need parenthesis to call a function
+```
+```{r}
+hello1 <- function(name = "Vic"){
+  print(paste("Hello",name))
+}
+
+hello1("sunshine")
+```
+
+```{r}
+add_num <- function(num1,num2){
+  my.sum <- num1 + num2
+  return(my.sum)
+}
+
+result <- add_num(4,5)
+result
+```
+Global variables
+```{r}
+v <- "I'm a global variable"
+stuff <- "I'm a global stuff"
+
+fun <- function(stuff){
+  print(v)
+  stuff <- "Reassign stuff inside of this function"
+  print(stuff)
+}
+
+fun(stuff)
+```
+
+#**R Functions Exercises**
+EXAMPLE 1: Create a function that takes in a name as a string argument, and prints out "Hello name"
+```{r}
+hello_you <- function(name){
+  print(paste("Hello",name))
+}
+
+hello_you("Vicky")
+```
+
+EXAMPLE 2: Create a function that takes in a name as a string argument and returns a string of the form - "Hello name"
+```{r}
+hello_you2 <- function(name){
+  return(paste("Hello",name))
+}
+hello_you2("Vicky")
+```
+
+Ex 1: Create a function that will return the product of two integers.
+```{r}
+prod <- function(in1,in2){
+  result <- in1 * in2
+  return(result)
+}
+
+prod(3,4)
+```
+
+Ex 2: Create a function that accepts two arguments, an integer and a vector of integers. It returns TRUE if the integer is present in the vector, otherwise it returns FALSE. Make sure you pay careful attention to your placement of the return(FALSE) line in your function!
+```{r}
+num_check <- function(int,int.vector){
+    if(int %in% int.vector == TRUE){
+    return(TRUE)
+    }else{
+    return(FALSE)
+  }
+}
+
+i <- 1
+iv <- c(1,2,3)
+num_check(i,iv)
+```
+Ex 3: Create a function that accepts two arguments, an integer and a vector of integers. It returns the count of the number of occurences of the integer in the input vector.
+```{r}
+i <- 1
+iv <- c(1,1,2,2,3,1,4,5,5,2,2,1,3)
+
+num_count <- function(int,int.v){
+  counter <- 0
+  for (num.v in int.v) {
+    if (i == num.v){
+      counter <- counter + 1
+    }
+  }
+  return(counter)
+}
+
+num_count(i,iv)
+```
+
+Ex 4: We want to ship bars of aluminum. We will create a function that accepts an integer representing the requested kilograms of aluminum for the package to be shipped. To fullfill these order, we have small bars (1 kilogram each) and big bars (5 kilograms each). Return the least number of bars needed.
+```{r}
+bar_count <- function(bars){
+  small <- 1
+  big <- 5
+  
+  needed.big <- as.integer(bars / big)
+  needed.small <- bars %% big
+  total <- needed.big + needed.small
+  
+ return(paste("Big bars needed:",needed.big,", small bars needed:",needed.small," in total =",total))
+}
+
+bar_count(17)
+```
+
+Ex 5: Create a function that accepts 3 integer values and returns their sum. However, if an integer value is evenly divisible by 3, then it does not count towards the sum. Return zero if all numbers are evenly divisible by 3. Hint: You may want to use the append() function.
+```{r}
+summer <- function(a,b.c)
+  {
+  
+     out <- c(0)
+  
+    if (a%%3 != 0){
+      out <- append(a,out)
+    }
+   
+    if (b%%3 != 0){
+      out <- append(b,out)
+    }
+   
+    if (c%%3 != 0){
+      out <- append(c,out)
+    }
+  
+  return(sum(out))
+}
+
+#print(summer(1,2,5))
+```
+Ex 6: Create a function that will return TRUE if an input integer is prime. Otherwise, return FALSE. You may want to look into the any() function.
+```{r}
+prime_check <- function(num){
+  if (num==2){
+    return(TRUE)
+  }
+  for (x in 2:(num-1)){
+    if (num%%x == 0){
+      return(FALSE)
+    }
+  }
+  return(TRUE)
+}
+print(prime_check(2))
+```
+
