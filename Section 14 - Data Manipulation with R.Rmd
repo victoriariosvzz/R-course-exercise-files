@@ -1,0 +1,189 @@
+---
+title: 'Section 14: Data Manipulation with R'
+author: "Victoria"
+date: "7/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Guide to using Dplyr**
+```{r}
+ #dataset we're gonna play with
+library(dplyr)
+library(nycflights13)
+```
+Lets start playing with the data
+```{r}
+head(flights)
+summary(flights)
+```
+##How to use dplyr to easily manipulate our data
+FUnctions inside of dplyr to use
+###Filter():to select a set of rows in a df
+```{r}
+head(filter(flights,month==11,day==3,carrier=="AA")) #with "filter" function
+
+```
+###Slice(): to select rows by position
+```{r}
+slice(flights,1:10) #we select the row 1 to 10
+```
+###arrange(): re-orders the rows of a df in ascending order
+```{r}
+head(arrange(flights,year,month,day,arr_time)) #it orders the rows in the written columns in ascending order
+head(arrange(flights,year,month,day,desc(arr_time)))
+```
+###select(): allows to only show specific columns in df
+```{r}
+head(select(flights,carrier))
+head(select(flights,carrier,dep_time))
+```
+##rename(): it lets us rename the columns of a df
+```{r}
+head(rename(flights,airline_carrier = carrier)) #new name = old name
+```
+##distinct(): allows us to select the unique values in a column or table
+```{r}
+distinct(select(flights,carrier)) #it only shows the different unique values (doesn't show the repetition)
+```
+##mutate(): to create new columns
+```{r}
+head(mutate(flights,new_col = arr_delay - dep_delay))
+```
+##transmute(): it creates a new column and ONLY returns this new column
+```{r}
+head(transmute(flights,new_col = arr_delay - dep_delay))
+```
+##summarize(): allows us to collapse dataframes in single rows
+```{r}
+summarise(flights,avg_air_time = mean(air_time,na.rm = TRUE)) #it returns one result as a row
+summarise(flights,total_air_time = sum(air_time,na.rm = TRUE))
+```
+
+##sample()
+```{r}
+sample_n(flights,10) #returns 10 random rows of the df
+sample_frac(flights,0.1) #returns a fraction of the rows (in this case it returns the 10% of the rows)
+```
+
+# **Pipe Operator %>%**
+It allows us to make sequential operations like: data %>% op1 %>% op2...
+```{r}
+library(dplyr)
+
+df <- mtcars
+
+#Nesting
+result <- arrange(sample_n(filter(df,mpg>20),size=5),desc(mpg))
+print(result)
+
+#the same but using Pipe operator
+result.pipe <- df %>% filter(mpg>20) %>% sample_n(size=5) %>% arrange(desc(mpg))
+
+print(result.pipe)
+```
+
+#**..Dplyr exercises..**
+```{r}
+library(dplyr)
+head(mtcars)
+```
+Return rows of cars that have an mpg value greater than 20 and 6 cylinders.
+```{r}
+res <- filter(mtcars,mpg>20,cyl==6)
+head(res)
+```
+
+Reorder the Data Frame by cyl first, then by descending wt.
+```{r}
+res <- arrange(mtcars,cyl,desc(wt))
+head(res)
+```
+
+Select the columns mpg and hp
+```{r}
+res <- select(mtcars,mpg,hp)
+head(res)
+```
+
+Select the distinct values of the gear column.
+```{r}
+distinct(select(mtcars,gear))
+```
+
+Create a new column called "Performance" which is calculated by hp divided by wt.
+```{r}
+res <- mutate(mtcars, Performance = hp/wt)
+head(res)
+```
+
+Find the mean mpg value using dplyr.
+```{r}
+summarize(mtcars,avg_mpg = mean(mpg,na.rm = TRUE))
+```
+
+Use pipe operators to get the mean hp value for cars with 6 cylinders.
+```{r}
+res <- mtcars %>% filter(cyl==6) %>% summarise(std_hp = mean(hp,na.rm = TRUE))
+print(res)
+```
+
+#**Tidyr**
+It's a function that helps us to clean data, this means, that each column is a property or variable, and each row is a vehicle with values
+##Data table = Data frame, but the data table has some extra features, and it's faster to process than a df
+```{r}
+library(tidyr)
+library(data.table)
+```
+##gather(): it gathers different columns into one single column
+```{r}
+#First, we create fake data to process it
+comp <- c(1,1,1,2,2,2,3,3,3)
+yr <- c(1998,1999,2000,1998,1999,2000,1998,1999,2000)
+q1 <- runif(9, min=0, max=100) # random 9 numbers from 0 to 100
+q2 <- runif(9, min=0, max=100)
+q3 <- runif(9, min=0, max=100)
+q4 <- runif(9, min=0, max=100)
+
+df <- data.frame(comp=comp,year=yr,Qtr1 = q1,Qtr2 = q2,Qtr3 = q3,Qtr4 = q4)
+
+gather(df,Quarter,Revenue,Qtr1:Qtr4) #we gather all the information of the Qtr1,2,3... into 2 columns: key = Quarter and value = Revenue
+
+df %>% gather(Quarter,Revenue,Qtr1:Qtr4) #it does the same
+```
+## spread(): it's a opposite of gather
+```{r}
+stocks <- data.frame(
+  time = as.Date('2009-01-01') + 0:9,
+  X = rnorm(10, 0, 1),
+  Y = rnorm(10, 0, 2),
+  Z = rnorm(10, 0, 4)
+)
+stocks
+#lets use GATHER()
+stocks.gathered <- stocks %>% gather(stock,price,X,Y,Z) #key = stock and value = price (X,Y,Z)
+head(stocks.gathered)
+
+#lets use SPREAD()
+stocks.gathered %>% spread(stock,price) #we spread putting (key,values)
+stocks.gathered %>% spread(time,price) #we can also do this, but it is not really tidy
+
+```
+## separate(): it transforms a single character column into multiple columns
+```{r}
+df <- data.frame(new.col=c(NA,"a.x","b.y","c.z"))
+df
+
+separate(df,new.col,c("ABC","XYZ")) #it separates non alphanumerical elements to create columns (like - , . / etc...)
+```
+## unite(): the opposite of separate
+```{r}
+df <- data.frame(new.col=c(NA,"a.x","b.y","c.z"))
+df.sep <- separate(df,new.col,c("ABC","XYZ")) 
+
+unite(df.sep, new.joined.col, ABC, XYZ, sep = "---") #it unites the columns ABC and XYZ as a new column new.joined.col
+```
+
