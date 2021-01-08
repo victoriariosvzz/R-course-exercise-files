@@ -1,0 +1,222 @@
+---
+title: "Section 15 - Data Visualization with R"
+author: "Victoria"
+date: "7/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Overview of ggplot2**
+##ggplot2
+Here is the cheat sheet for each kind of plot: {https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf}
+Is the most popular data visual package for R
+It consists of 3 main layers:
+- Geometries  
+- Aesthetics  
+- Data  
+And 3 optional layers:
+- Facets  
+- Statistics  
+- Coordinates
+```{r}
+library(ggplot2) #library
+pl <- ggplot(data = mtcars,aes(x=mpg, y=hp)) #data and aesthetics
+pl + geom_point() #geometry
+# DONE!
+
+```
+Optional layers
+##Facets: allows us to put multiple plots in a single canvas
+```{r}
+pl <- ggplot(data = mtcars,aes(x=mpg, y=hp)) + geom_point() #data, aesthetics & geometry
+pl + facet_grid(cyl ~ .) #facets, each cyl value has its own plot!
+```
+
+##Statistics: allows us to have a shadow of error (stadistical value)
+```{r}
+pl <- ggplot(data = mtcars,aes(x=mpg, y=hp)) + geom_point() #data, aesthetics & geometry
+pl + facet_grid(cyl ~ .) + stat_smooth()#facets, each cyl value has its own plot!
+
+```
+##Coordinates: allows us to set limits of the x and y axis
+```{r}
+pl <- ggplot(data = mtcars,aes(x=mpg, y=hp)) + geom_point() #data, aesthetics & geometry
+pl2 <- pl + facet_grid(cyl ~ .) + stat_smooth()#facets, each cyl value has its own plot!
+pl2 + coord_cartesian(xlim = c(15,25))
+```
+#Theme: to affect the details like fonts, lines, etc.
+```{r}
+pl <- ggplot(data = mtcars,aes(x=mpg, y=hp)) + geom_point() #data, aesthetics & geometry
+pl2 <- pl + facet_grid(cyl ~ .) + stat_smooth()#facets, each cyl value has its own plot!
+pl2 + coord_cartesian(xlim = c(15,25)) + theme_dark()
+```
+
+#**Histograms**
+They are used to plot the **frecuency** of a value in our data frame
+```{r}
+library(ggplot2)
+library(ggplot2movies)
+
+#Data & Aesthetics layers
+pl <- ggplot(movies,aes(x=rating))
+#Geometry
+pl2 <- pl + geom_histogram(binwidth = 0.1,color="red",fill="pink",alpha=0.4) #the binwidth is the "width" of the values for each block
+#alpha controls the transparecy of our blocks
+pl3 <- pl2 + xlab("Movie Rating") + ylab("Count")
+
+print(pl3 + ggtitle("Quantity of movie ratings"))
+```
+
+#**Scatterplots**
+To show correlations between 2 variables
+```{r}
+df <- mtcars
+df
+# Data & Aesthetics layer
+pl <- ggplot(df,aes(x=wt,y=mpg))
+# Geometry layer
+pl.op1 <- pl + geom_point(size=2,alpha=0.5)
+pl.op2<- pl + geom_point(aes(shape=factor(cyl),color=factor(cyl)),size=5) #the size of the points change according to cyl values (this dependency of format and values only works by using aes())
+
+print(pl.op2)
+```
+##Color
+We can use HEX color arguments too! You can google the HEX code of your favorite color and just paste it as color (#code of the color)
+```{r}
+df <- mtcars
+# Data & Aesthetics layer
+pl <- ggplot(df,aes(x=wt,y=mpg))
+# Geometry layer
+pl.op2<- pl + geom_point(aes(shape=factor(cyl)),size=5,color="#56ea29") #the size of the points change according to cyl values (this dependency of format and values only works by using aes())
+
+print(pl.op2)
+```
+
+##Scale color gradient
+We can set the gradient of colors we want for the scatterplot
+```{r}
+df <- mtcars
+# Data & Aesthetics layer
+pl <- ggplot(df,aes(x=wt,y=mpg))
+# Geometry layer
+pl1<- pl + geom_point(aes(color=hp),size=5)
+
+pl2 <- pl1 + scale_color_gradient(low = "blue",high = "red")
+
+print(pl2)
+```
+
+#**Barplots**
+It's similar to a histogram, but we deal with **categorical data** on the x axis, not with data, the y axis is a count too.
+```{r}
+df <- mpg
+
+pl <- ggplot(df,aes(x=class)) #the x axis will be the class of the car
+pl + geom_bar(aes(fill=drv))
+pl + geom_bar(aes(fill=drv),position = "dodge") 
+pl + geom_bar(aes(fill=drv),position = "fill")#we make the color dependent of the drive type to make a stacked bar plot, cool!
+
+#Dodge and fill are types of stacking of the bars
+```
+
+#**Boxplots**
+TO graph the **quartiles as boxes**, on the x axis should be a categorical or discrete value (we need to use values)
+- Bottom and top of the box are: 1st and 3rd quartiles  
+- The band in the middle: 2nd quartile (median of the data)  
+- The ends of the lines: 1.5x the interquartile range (upper and lower)
+
+```{r}
+df <-  mtcars
+head(mtcars)
+
+pl <- ggplot(df,aes(x=factor(cyl),y=mpg))
+
+pl + geom_boxplot(aes(fill=factor(cyl))) + coord_flip()
+```
+
+#**2 Variables plotting**
+```{r}
+library(ggplot2)
+library(ggplot2movies)
+
+pl <- ggplot(movies,aes(x=year,y=rating))
+pl2 <- pl + geom_bin2d(binwidth=c(3,1))
+pl2 + scale_fill_gradient(low = "blue",high = "red")
+
+#we can also use hexagons, if you wish
+pl <- ggplot(movies,aes(x=year,y=rating))
+pl2 <- pl + geom_hex()
+pl2 + scale_fill_gradient(low = "blue",high = "red")
+
+#Geom to density plot
+pl <- ggplot(movies,aes(x=year,y=rating))
+pl2 <- pl + geom_density2d_filled()
+pl2
+
+#can also be unfilled
+pl <- ggplot(movies,aes(x=year,y=rating))
+pl2 <- pl + geom_density2d()
+pl2
+```
+
+#**Coordinates and faceting**
+Coordinates help us to size correctly our plot
+Faceting allows us to put more than one plot in the window
+```{r}
+library(ggplot2)
+
+#Using coordinates
+pl <- ggplot(mpg,aes(x=displ,y=hwy)) + geom_point()
+pl + coord_cartesian(xlim = c(1,4),ylim = c(15,30))
+
+print(pl)
+
+#Using facets
+pl <- ggplot(mpg,aes(x=displ,y=hwy)) + geom_point()
+pl + facet_grid(. ~ cyl) #facet_grid(yaxis ~ xaxis)
+pl + facet_grid(drv ~ .)
+pl + facet_grid(drv ~ cyl)
+```
+
+#**Themes**
+It gives beauty to our plots
+```{r}
+library(ggplot2)
+library(ggthemes) #it has lots of options of themes
+
+#theme_set(theme_minimal()) #the theme_set sets the theme for ALL the plots in the script otherwise do the below
+
+pl <- ggplot(mtcars,aes(x=wt,y=mpg)) + geom_point() + theme_excel()
+
+print(pl)
+
+```
+
+#**..ggplot2 Exercises..**
+For the first few plots, use the mpg dataset
+
+Histogram of hwy mpg values:
+```{r}
+df <- mpg
+ggplot(df,aes(x=hwy)) + geom_histogram(fill = "red",alpha = 0.5, bins = 20) + theme_gray()
+```
+Barplot of car counts per manufacturer with color fill defined by cyl count
+```{r}
+df <- mpg
+ggplot(df,aes(x=manufacturer)) + geom_bar(aes(fill=factor(cyl)))
+```
+Switch now to use the txhousing dataset that comes with ggplot2
+```{r}
+df <- txhousing
+ggplot(df,aes(x=sales,y=volume)) + geom_point(aes(color=volume),alpha=0.5)
+```
+
+Add a smooth fit line to the scatterplot from above. Hint: You may need to look up geom_smooth()
+```{r}
+df <- txhousing
+ggplot(df,aes(x=sales,y=volume)) + geom_point(aes(color=volume),alpha=0.5,size=5) + geom_smooth(color = "green")
+```
+
