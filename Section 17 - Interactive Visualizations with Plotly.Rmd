@@ -1,0 +1,26 @@
+---
+title: "Section 17 - Interactive Visualizations with Plotly"
+author: "Victoria"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Interactive visualizations with Plotly**
+Open source library for creating interactive visualizations with the ggplot2 instructions
+```{r}
+library(ggplot2)
+library(plotly)
+#with ggplot
+pl <- ggplot(mtcars,aes(mpg,wt)) + geom_point()
+print(pl)
+
+#with plotly
+gpl <- ggplotly(pl)
+print(gpl)
+```
+
+Go to [https://plotly.com/ggplot2/] for examples of all the types of interactive plots using ggplot2 to plotly
