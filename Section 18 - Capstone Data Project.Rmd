@@ -1,0 +1,133 @@
+---
+title: "Section 18 - Capstone Data Project"
+author: "Victoria"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**MoneyBall Project**
+Use R to open the Batting.csv file and assign it to a dataframe called batting using read.csv
+```{r}
+batting <- read.csv("Batting.csv")
+head(batting)
+str(batting)
+```
+Call the head() of the first five rows of AB (At Bats) column
+```{r}
+head(batting$AB)
+```
+Call the head of the doubles (X2B) column
+```{r}
+head(batting$X2B)
+```
+Which means that the Batting Average is equal to H (Hits) divided by AB (At Base). So we'll do the following to create a new column called BA and add it to our data frame:
+```{r}
+batting$BA <- batting$H / batting$AB #new column of batting average
+```
+After doing this operation, check the last 5 entries of the BA column of your data frame and it should look like this:
+```{r}
+tail(batting$BA)
+```
+Now do the same for some new columns! On Base Percentage (OBP) and Slugging Percentage (SLG). Hint: For SLG, you need 1B (Singles), this isn't in your data frame. However you can calculate it by subtracting doubles,triples, and home runs from total hits (H): 1B = H-2B-3B-HR
+
+Create an OBP Column
+```{r}
+batting$OBP <- (batting$H + batting$BB + batting$HBP)/(batting$AB + batting$BB + batting$HBP + batting$SF)
+
+tail(batting$OBP)
+```
+
+For SLG, you need 1B (Singles), this isn't in your data frame. However you can calculate it by subtracting doubles,triples, and home runs from total hits (H): 1B = H-2B-3B-HR
+```{r}
+batting$X1B <- batting$H - batting$X2B - batting$X3B - batting$HR
+
+tail(batting$X1B)
+```
+
+
+Create an SLG Column
+```{r}
+batting$SLG <- (batting$X1B + (2*batting$X2B) + (3*batting$X3B) + (4*batting$HR)) / batting$AB
+
+tail(batting$AB)
+```
+
+Check the structure of your data frame using str()
+```{r}
+str(batting)
+```
+
+##**Merging Salary Data with Batting Data**
+Load the Salaries.csv file into a dataframe called sal using read.csv
+```{r}
+sal <- read.csv("Salaries.csv")
+
+combo <- merge(batting,sal,by=c("playerID","yearID"))
+str(combo)
+```
+
+Use summary to get a summary of the batting data frame and notice the minimum year in the yearID column. Our batting data goes back to 1871! Our salary data starts at 1985, meaning we need to remove the batting data that occured before 1985.
+
+Use subset() to reassign batting to only contain data from 1985 and onwards
+```{r}
+summary(sal)
+str(sal)
+
+sal.filtered <- subset(sal,subset = yearID >= 1985)
+
+summary(sal.filtered)
+str(sal.filtered)
+```
+
+#**Analyzing the Lost Players**
+As previously mentioned, the Oakland A's lost 3 key players during the off-season. We'll want to get their stats to see what we have to replace. The players lost were: first baseman 2000 AL MVP Jason Giambi (giambja01) to the New York Yankees, outfielder Johnny Damon (damonjo01) to the Boston Red Sox and infielder Rainer Gustavo "Ray" Olmedo ('saenzol01').
+
+Use the subset() function to get a data frame called lost_players from the combo data frame consisting of those 3 players. Hint: Try to figure out how to use %in% to avoid a bunch of or statements!
+```{r}
+library(dplyr)
+lost_players_vec <- c("giambja01","damonjo01","saenzol01") #these are the playerID values of the lost players
+
+lost_players <- subset(batting, batting$playerID %in% lost_players_vec) #we get a df of only those 3 lost players
+
+print(lost_players)
+```
+Since all these players were lost in after 2001 in the offseason, let's only concern ourselves with the data from 2001.
+
+Use subset again to only grab the rows where the yearID was 2001.
+```{r}
+lost_players_2001 <- subset(lost_players, lost_players$yearID == 2001)
+print(lost_players_2001)
+```
+
+Reduce the lost_players data frame to the following columns: playerID,H,X2B,X3B,HR,OBP,SLG,BA,AB
+```{r}
+lost_players <- lost_players_2001[,c("playerID","H","X2B","X3B","HR","OBP","SLG","BA","AB")]
+print(lost_players)
+```
+
+#**Replacement Players**
+Now we have all the information we need! Here is your final task - Find Replacement Players for the key three players we lost! However, you have three constraints:
+
+- The total combined salary of the three players can not exceed 15 million dollars.  
+- Their combined number of At Bats (AB) needs to be equal to or greater than the lost players.  
+- Their mean OBP had to equal to or greater than the mean OBP of the lost players.  
+```{r}
+library(ggplot2)
+combo <- subset(combo, yearID == 2001)
+ggplot(combo, aes(x=OBP,y=salary)) + geom_point(size=2)
+
+combo <- subset(combo,salary<8000000 & OBP>0)
+ggplot(combo, aes(x=OBP,y=salary)) + geom_point(size=2)
+
+combo <- subset(combo, AB >= 450)
+ggplot(combo, aes(x=OBP,y=salary)) + geom_point(size=2)
+
+combo.ord <- head(arrange(combo, desc(OBP)),10)
+
+combo.ord[,c("playerID","AB","salary","OBP")]
+```
+
