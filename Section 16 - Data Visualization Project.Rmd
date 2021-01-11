@@ -1,0 +1,68 @@
+---
+title: "Section 16 - Data Visualization Project"
+author: "Victoria"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Assignment for ggplot2**
+Import the ggplot2 data.table libraries and use fread to load the csv file 'Economist_Assignment_Data.csv' into a dataframe called df (Hint: use drop=1 to skip the first column)
+```{r}
+temp <- read.csv("Economist_Assignment_Data.csv")
+df <- drop(temp[-1]) #to delete the first col of data
+head(df)
+```
+Use ggplot() + geom_point() to create a scatter plot object called pl. You will need to specify x=CPI and y=HDI and color=Region as aesthetics
+```{r}
+library(ggplot2)
+pl <- ggplot(df,aes(x=CPI,y=HDI)) + geom_point(aes(color=Region))
+
+print(pl)
+```
+Change the points to be larger empty circles. (You'll have to go back and add arguments to geom_point() and reassign it to pl.) You'll need to figure out what shape= and size=
+```{r}
+library(ggplot2)
+pl <- ggplot(df,aes(x=CPI,y=HDI)) + geom_point(aes(color=Region), shape=1 ,size=3)
+
+print(pl)
+```
+Add geom_smooth(aes(group=1)) to add a trend line
+```{r}
+pl <- ggplot(df,aes(x=CPI,y=HDI)) + geom_point(aes(color=Region), shape=1 ,size=3) + geom_smooth(aes(group=1), method="lm", formula = y ~ log(x), se=FALSE, color = "red")
+
+print(pl)
+```
+It's really starting to look similar! But we still need to add labels, we can use geom_text! Add geom_text(aes(label=Country)) to pl2 and see what happens. (Hint: It should be way too many labels)
+```{r}
+pl <- ggplot(df,aes(x=CPI,y=HDI)) + geom_point(aes(color=Region), shape=1 ,size=3) + geom_smooth(aes(group=1), method="lm", formula = y ~ log(x), se=FALSE, color = "red") + geom_text(aes(label=Country))
+
+print(pl)
+```
+Labeling a subset is actually pretty tricky! So we're just going to give you the answer since it would require manually selecting the subset of countries we want to label!
+```{r}
+pointsToLabel <- c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan",
+                   "Afghanistan", "Congo", "Greece", "Argentina", "Brazil",
+                   "India", "Italy", "China", "South Africa", "Spane",
+                   "Botswana", "Cape Verde", "Bhutan", "Rwanda", "France",
+                   "United States", "Germany", "Britain", "Barbados", "Norway", "Japan",
+                   "New Zealand", "Singapore")
+
+pl <- ggplot(df,aes(x=CPI,y=HDI)) + geom_point(aes(color=Region), shape=1 ,size=3) + geom_smooth(aes(group=1), method="lm", formula = y ~ log(x), se=FALSE, color = "red")  + geom_text(aes(label = Country), color = "gray20", 
+                data = subset(df, Country %in% pointsToLabel),check_overlap = TRUE)
+
+print(pl)
+```
+Almost there! Still not perfect, but good enough for this assignment. Later on we'll see why interactive plots are better for labeling. Now let's just add some labels and a theme, set the x and y scales and we're done!
+
+Add theme_bw() to your plot and save this to pl4
+```{r}
+library(ggthemes)
+pl2 <- pl + theme_economist_white() + xlab("Corruption Perceprions Index. 2011 (10=least corrupt)") + ylab("Human Development Index. 2011 (1=Best)") + ggtitle("Curruption and Human development") + xlim(c(0.1,10.1)) + ylim(c(0.01,1))
+
+print(pl2)
+```
+
