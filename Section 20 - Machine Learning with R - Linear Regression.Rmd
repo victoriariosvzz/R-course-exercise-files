@@ -1,0 +1,169 @@
+---
+title: 'Section 20: Machine Learning with R - Linear Regression'
+author: "Victoria"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Using R for Linear Regression**
+Formulas in R take the form (y ~ x). To add more variables we use the sign +, for example (y ~ x + z)
+
+##**syntax for linear regression model**
+model <- lm(formula, data = dataframe.for.training)
+**formula's syntax*: Quantity we want to predict ~ variables that make that prediction (var1 + var2...)
+**Once you create your model, it's time to train your model**
+dtest$pred_quantity <- predict(model, newdata = data.to.use.in.prediction)
+
+#**Linear Regression with R**
+1. Getting the data
+```{r}
+df <- read.csv("student-mat.csv",sep = ";") #we indicate the separator is not a comma but a ;
+head(df)
+summary(df)
+```
+2. Cleaning the data
+```{r}
+any(is.na(df)) #to check if we have na values
+str(df)
+```
+3. Exploring the data with ggplot2 to find correlations
+```{r}
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+
+#Num only
+num.cols <- sapply(df,is.numeric) #we can only use the cor function with numeric values
+#Filter
+cor.data <- cor(df[,num.cols]) #we find the correlation of the numeric columns
+print(cor.data)
+```
+4. We digitaliza the data to have an easy interpretation of it
+```{r}
+library(corrgram)
+library(corrplot)
+
+#using corrplot (we need to filter for only num values and apply cor to the data)
+print(corrplot(cor.data, method = "color"))
+
+#using corrgram (you directly pass the df)
+print(corrgram(df))
+
+corrgram(df,order=TRUE,lower.panel = panel.shade,upper.panel = panel.pie,text.panel = panel.txt)
+```
+Red = negative correlation
+Blue = positive correlation
+
+5. Let's plot
+```{r}
+ggplot(df,aes(x=G3)) + geom_histogram(bins=20,alpha=0.5,fill="blue")
+```
+
+# Part 2 - Linear Regression
+6. We randomly split the data into training set and testing set
+```{r}
+library(caTools)
+# set a seed
+set.seed(101) #we do it specifically to have the same random splits as the instructor
+
+# Split up the sample
+sample <- sample.split(df$G3, SplitRatio = 0.7) #Split ratio is the % of data that we'll use as TRAINING data
+
+# 70% of my data in sample column has the value of TRUE
+train <- subset(df, sample == TRUE)
+# 30% of my data has the value of FALSE
+test <- subset(df, sample == FALSE)
+```
+7. Train our model
+```{r}
+# the general model of building a linear regression model in R looks like this:
+
+#model <- lm(y ~ x1 + x2, data) # to use only the features x1 and x2 of your df
+
+#model <- lm(y ~ ., data) #it uses all the features in our df
+
+```
+```{r}
+# Training OUR model
+model <- lm(G3 ~ ., data = train)
+
+#Running our model
+
+#Interpreting our model
+print(summary(model))
+
+
+```
+
+- Call: tells you which model you used  
+- Residuals: the difference of the actual values in the column you're predicting and the values of your linear regression prediction  
+- Coefficients:
+-   Estimate: the value of slope calculated by the regression  
+-   Std. Error: Lower is better, preferably lower than the value of the Estimate  
+-  t value: scores that measures if the variable is significant to the model (used to calculate *P value* and *Significance level*). The more stars (***) = more significance level.
+-  Pr(>|t|): probability that the variable is NOT RELEVANT (we want it to be as small as possible)  
+- R squared value: the higher the better, it corresponds to the variability of the model and the fit of your model, 1 is the ideal value  
+
+8. Plotting the residuals
+```{r}
+res <- residuals(model)
+class(res)
+res <- as.data.frame(res)
+head(res)
+
+ggplot(res, aes(res)) + geom_histogram(fill="blue")
+#We want a NORMAL DISTRIBUTION with a median in 0, that means that the difference between the real mean value and our model's mean value is 0
+```
+
+# Part 3: Linear Regression with R
+```{r}
+plot(model) #we get 4 plots out of the data of our model
+```
+ 9. Predicting values with our model previously trained
+```{r}
+G3.predictions <- predict(model, test) #we input the testing data to make predictions with the same format
+
+#we create a dataframe with 2 columns, the predictions and the actual values
+results <- cbind(G3.predictions,test$G3)
+colnames(results) <- c("predicted","actual")
+
+print(head(results))
+
+results <- as.data.frame(results)            
+```
+ 
+10. Let's take care of the negative values predicted, as we don't want negative values
+```{r}
+to_zero <- function(x){
+  if (x<0){
+    return(0)
+  }else{
+    return(x)
+  }
+}
+
+# Apply zero function to the predicted values of our model
+results$predicted <- sapply(results$predicted, to_zero)
+
+#to make sure how off we are with the predictions we find the:
+#Mean squared error
+mse <- mean((results$actual - results$predicted)^2)
+#Root mean squared error
+rmse <- mse^0.5
+
+print(c("MSE: ",mse))
+print(c("RMSE: ",rmse))
+
+# R squared value to find the fit of our model values
+SSE <- sum((results$predicted - results$actual)^2) #sum of squared errors
+SST <- sum((mean(df$G3)-results$actual)^2) #sum of squared total
+
+R2 <- 1 - SSE/SST #R squared value (the ideal is 1)
+
+print(c("R squared value: ",R2))
+```
+
