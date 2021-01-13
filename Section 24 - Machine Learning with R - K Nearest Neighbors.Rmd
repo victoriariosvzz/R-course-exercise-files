@@ -1,0 +1,96 @@
+---
+title: "Section 24 - Machine Learning with R - K Nearest Neighbors"
+author: "Victoria"
+date: "12/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **K Nearest Neighbors Model**
+##Training algorithm:
+1. Store ALL DATA
+##Prediction algorithm:
+1. Calculate the distance from x to all points in your data
+2. Sort the points in your data by increasing distance from x
+3. Predict the majority label of the "K" closest points (k = the number of points closest to your selected point)
+
+##PROS:
+Very simple, easy to add more data, just two parameters: K and Distance Metric
+##CONS:
+High Prediction Cost (worse for large data sets)
+
+```{r}
+library(ISLR) #it has teh "caravan" dataset
+
+str(Caravan)
+```
+
+1. Let's remove NA values
+```{r}
+any(is.na(Caravan))
+```
+
+2. Let's standarize all the variables, except for the one we want to predict (we do this because we have very extreme scales from one variable to the other)
+```{r}
+#we check the scales of some columns
+var(Caravan[,1])
+var(Caravan[,2])
+
+standarized.caravan <- scale(Caravan[,-86])
+purchase <- Caravan[,86]
+
+var(standarized.caravan[,1])
+var(standarized.caravan[,2])
+```
+3. Train and Test split
+```{r}
+test.index <- 1:1000
+
+test.data <- standarized.caravan[test.index,]
+test.purchase <- purchase[test.index]
+
+train.data <- standarized.caravan[-test.index,]
+train.purchase <- purchase[-test.index]
+```
+
+4. Time to use the KNN algorithm to see if someone will purchase the insurance policy or not
+```{r}
+library(class)
+set.seed(101)
+
+predicted.purchase <- knn(train.data, test.data, train.purchase, k=1)
+
+head(predicted.purchase)
+```
+
+5. Evaluating the model
+```{r}
+misclass.error <- mean(test.purchase != predicted.purchase)
+
+print(misclass.error) #percent decimal
+```
+
+6. Choosing a K value until we have the minimum misclass.error percentage
+```{r}
+predicted.purchase <- NULL
+error.rate <- NULL
+
+for (i in 1:20) {
+  set.seed(101)
+  predicted.purchase <- knn(train.data, test.data, train.purchase, k=i)
+  error.rate[i] <- mean(test.purchase != predicted.purchase)
+}
+
+## Visualize K elbow method
+library(ggplot2)
+k.values <- 1:20
+error.df <- data.frame(error.rate,k.values)
+print(error.df)
+
+ggplot(error.df, aes(k.values,error.rate)) + geom_point() + theme_bw()
+```
+
+**From the plot we can conclude that the value of 9 for K is the right choice to have the minimum error**
