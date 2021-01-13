@@ -1,0 +1,259 @@
+---
+title: "Section 23 - Machine Learning Project - Logistic Regression"
+author: "Victoria"
+date: "12/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Logistic Regression Project**
+In this project we will be working with the UCI adult dataset. We will be attempting to predict if people in the data set belong in a certain class by salary, either making <=50k or >50k per year.
+
+**Typically most of your time is spent cleaning data**, not running the few lines of code that build your model, this project will try to reflect that by showing different issues that may arise when cleaning data.
+
+**Get the Data**
+Read in the adult_sal.csv file and set it to a data frame called adult.
+```{r}
+adult <- read.csv("adult_sal.csv")
+
+head(adult)
+```
+You should notice the index has been repeated. Drop this column.
+```{r}
+library(dplyr)
+adult <- select(adult, -X)
+```
+Check the head,str, and summary of the data now.
+```{r}
+head(adult)
+str(adult)
+summary(adult)
+```
+
+**Data Cleaning**
+Notice that we have a lot of columns that are cateogrical factors, however a lot of these columns have too many factors than may be necessary. In this data cleaning section we'll try to clean these columns up by reducing the number of factors.
+
+*type_employer column*
+Use table() to check out the frequency of the type_employer column.
+```{r}
+table(adult$type_employer)
+```
+How many Null values are there for type_employer? What are the two smallest groups?
+```{r}
+null.employed <- subset(adult, type_employer == "?")
+count(null.employed) #1836 null values
+
+small.groups <- c("Never-worked", "Without-pay")
+```
+
+Combine these two smallest groups into a single group called "Unemployed". There are lots of ways to do this, so feel free to get creative. Hint: It may be helpful to convert these objects into character data types (as.character() and then use sapply with a custom function)
+
+```{r}
+class(adult$type_employer)
+
+unemp <- function(job){
+  job <- as.character(job)
+  if (job == "Never-worked" | job=="Without-pay") {
+    return("Unemployed")
+  }else{
+    return(job)
+  }
+}
+
+adult$type_employer <- sapply(adult$type_employer,unemp) #applying the function
+
+table(adult$type_employer)
+
+```
+What other columns are suitable for combining? Combine State and Local gov jobs into a category called SL-gov and combine self-employed jobs into a category called self-emp.
+```{r}
+fusion <- function(job){
+  job <- as.character(job)
+  if (job == "State-gov" | job=="Local-gov") {
+    return("SL-gov")
+  }else if (job == "Self-emp-inc" | job == "Self-emp-not-inc") {
+    return("Self-emp")
+  }else{
+    return(job)
+  }
+}
+
+adult$type_employer <- sapply(adult$type_employer,fusion) # Applying the function to fuse the categories
+
+table(adult$type_employer)
+```
+**Marital Column**
+Use table() to look at the marital column
+```{r}
+table(adult$marital)
+```
+
+Reduce this to three groups:
+
+Married
+Not-Married
+Never-Married
+```{r}
+marital.st <- function(status){
+  status <- as.character(status)
+  if (status == "Married-AF-spouse" | status == "Married-civ-spouse" | status == "Married-spouse-absent") {
+    return("Married")
+  }else if (status == "Never-married") {
+    return("Never-Married")
+  }else if (status == "Divorced" | status == "Separated" | status == "Widowed") {
+    return("Not-Married")
+  }
+}
+
+adult$marital <- sapply(adult$marital, marital.st)
+
+table(adult$marital)
+```
+**Country Column*
+Check the country column using table()
+```{r}
+table(adult$country)
+```
+We can reduce the countries by grouping them into continents by hand (suggestion)
+
+Check the str() of adult again. Make sure any of the columns we changed have factor levels with factor()
+```{r}
+str(adult)
+
+adult$type_employer <- as.factor(adult$type_employer)
+
+adult$marital <- as.factor(adult$marital)
+
+adult$country <- as.factor(adult$country)
+
+str(adult)
+```
+
+**Missing Data**
+Notice how we have data that is missing.
+Convert any cell with a '?' or a ' ?' value to a NA value. Hint: is.na() may be useful here or you can also use brackets with a conditional statement. Refer to the solutions if you can't figure this step out.
+```{r}
+adult[adult=="?"] <- NA
+
+adult$type_employer <- as.factor(adult$type_employer)
+adult$marital <- as.factor(adult$marital)
+adult$country <- as.factor(adult$country)
+
+table(adult$type_employer)
+
+any(is.na(adult))
+head(adult)
+```
+Using table() on a column with NA values should now not display those NA values, instead you'll just see 0 for ?. Optional: Refactor these columns (may take awhile). 
+
+Play around with the missmap function from the Amelia package. Can you figure out what its doing and how to use it?
+```{r}
+library(Amelia)
+adult <- as.data.frame(adult)
+missmap(adult, col = c("yellow","black"), legend = TRUE)
+
+missmap(adult,y.at=c(1),y.labels = c(''),col=c('yellow','black'))
+```
+Use na.omit() to omit NA data from the adult data frame. Note, it really depends on the situation and your data to judge whether or not this is a good decision. You shouldn't always just drop NA values.
+```{r}
+adult <- na.omit(adult)
+```
+Use missmap() to check that all the NA values were in fact dropped.
+```{r}
+missmap(adult,y.at=c(1),y.labels = c(''),col=c('yellow','black'))
+```
+**EDA**
+Although we've cleaned the data, we still have explored it using visualization.
+
+Check the str() of the data.
+```{r}
+str(adult)
+
+adult$education <- as.factor(adult$education)
+adult$occupation <- as.factor(adult$occupation)
+adult$relationship <- as.factor(adult$relationship)
+adult$race <- as.factor(adult$race)
+adult$sex <- as.factor(adult$sex)
+adult$income <- as.factor(adult$income)
+```
+
+Use ggplot2 to create a histogram of ages, colored by income.
+```{r}
+library(ggplot2)
+
+ggplot(adult,aes(age)) + geom_histogram(aes(fill = income), color = "black", binwidth = 1) + theme_bw()
+```
+Plot a histogram of hours worked per week
+```{r}
+ggplot(adult, aes(hr_per_week)) + geom_histogram() + theme_bw()
+```
+Rename the country column to region column to better reflect the factor levels.
+```{r}
+adult <- rename(adult, region = country)
+```
+Create a barplot of region with the fill color defined by income class. Optional: Figure out how rotate the x axis text for readability
+```{r}
+library(plotly)
+pl <- ggplot(adult,aes(factor(region))) + geom_bar(aes(fill=income),color="black") + theme_bw()
+
+print(pl)
+ggplotly(pl)
+```
+## **Building a Model**
+Now it's time to build a model to classify people into two groups: Above or Below 50k in Salary.
+
+**Logistic Regression**
+Refer to the Lecture or ISLR if you are fuzzy on any of this.
+
+Logistic Regression is a type of classification model. In classification models, we attempt to predict the outcome of categorical dependent variables, using one or more independent variables. The independent variables can be either categorical or numerical.
+
+Logistic regression is based on the logistic function, which always takes values between 0 and 1. Replacing the dependent variable of the logistic function with a linear combination of dependent variables we intend to use for regression, we arrive at the formula for logistic regression.
+
+Take a quick look at the head() of adult to make sure we have a good overview before going into building the model!
+```{r}
+head(adult)
+```
+**Train Test Split**
+Split the data into a train and test set using the caTools library as done in previous lectures. Reference previous solutions notebooks if you need a refresher.
+```{r}
+library(caTools)
+set.seed(101)
+
+split <- sample.split(adult$income, SplitRatio = 0.7)
+
+train <- subset(adult, split == TRUE )
+test <- subset(adult, split == FALSE)
+
+
+```
+**Training the Model**
+Explore the glm() function with help(glm). Read through the documentation.
+```{r}
+train.ok <- select(train, -region)
+test.ok <- select(test,-region)
+
+model <- glm(income ~ ., family = binomial(link = "logit"), data = train.ok)
+
+summary(model)
+
+#STEP FUNCTION: keeps ONLY the variables that are significant
+new.step.model <- step(model)
+```
+Let's create a **confussion matrix**
+```{r}
+test$predicted.income <- predict(model, test.ok, type = "response")
+
+table(test$income, test$predicted.income > 0.5)
+
+##Checking the accuracy
+acc <- (6289 + 1355)/(6289 + 1355 + 507 + 897)
+acc
+recall <- 6289/(6289+507)
+recall
+precision <- 6289/(6289+897)
+precision
+```
+
