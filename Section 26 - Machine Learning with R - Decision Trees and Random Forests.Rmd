@@ -1,0 +1,68 @@
+---
+title: "Section 26 - Machine Learning with R - Decision Trees and Random Forests"
+author: "Victoria"
+date: "13/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Decision Trees and Random Forest with R**
+Decision tree to make assumptions based on the factors selected, resulting in branches that give different results. The order of the selection matters.
+_ Weakness: they don't have a very high accuracy  
+
+##**Random Forest**
+We create many trees with a random sample of features chosen as the split for each tree. This improves the accuracy of the model.
+- m = sqrt(p: the whole set of features)
+
+##**What's the point of using random forest?**
+If there's a feature that's VERY STRONG in comparison to the others, decision trees selects it as the TOP SPLIT, in result you'll get similar trees that are highly correlated (bad). Random forests decorrelates the trees and make them independent from each other (good). 
+
+# TREE MODEL
+
+1. Check for labels as a factor, and values as int
+```{r}
+library(rpart)
+
+str(kyphosis) #a condition of the spine, age in months, number of vertebrae involved
+
+head(kyphosis)
+```
+
+2. Let's create the Tree Model
+```{r}
+tree <- rpart(Kyphosis ~ ., method = "class", data = kyphosis) #check that both kyphosis's are different things, the first one is the column name
+
+printcp(tree)
+```
+
+3. Let's plot the Tree
+```{r}
+#Manually
+plot(tree, uniform = TRUE, main = "Kyphosis Tree")
+text(tree, use.n = TRUE, all = TRUE)
+
+#With the library rpart.plot (BETTER AND EASIER)
+library(rpart.plot)
+prp(tree)
+```
+
+# RANDOM FORESTS
+```{r}
+library("randomForest")
+
+rf.model <- randomForest(Kyphosis ~ ., data = kyphosis)
+
+print(rf.model)
+
+#The results are automatically arranged in columns
+head(rf.model$predicted)
+rf.model$ntree
+
+#You can also get the confusion matrix and the error rate from here
+rf.model$confusion
+rf.model$err.rate
+```
+
