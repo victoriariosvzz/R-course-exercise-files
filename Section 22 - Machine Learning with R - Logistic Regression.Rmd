@@ -1,0 +1,149 @@
+---
+title: "Section 22 - Machine Learning with R - Logistic Regression"
+author: "Victoria"
+date: "12/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#**Introduction to Logistic Regression**
+It's a method for **binary classification**, for example:
+- Detecting spam and non-spam e-mails  
+- Detecting faulty and non-faulty payments  
+We cannot use the Linear Regression Model in binary groups, because the training data is either 1 or 0, and the linear model would give values lower or higher than those values.
+##Result: probability between 0 and 1 of belonging to class 1 (for example, class 1 is for values of p > 0.5)
+
+##Model
+Using the **confusion matrix**
+- Accuracy: (TN + TP)/Total
+- Error rate: (FN + FN)/Total
+**Type of errors**
+- Type I error: False positive
+- Type II error: False negative
+
+# Logistic Regression Lecture
+```{r}
+df.train <- read.csv("titanic_train.csv")
+
+head(df.train)
+str(df.train)
+```
+1. Let's check how many missing data we have (using Amelia package)
+```{r}
+library(Amelia)
+
+missmap(df.train, main = "Missing map", col = c("yellow","black"), legend = FALSE) #we notice that in the AGE column we have lots of missing spaces
+```
+
+2. Exploring the data
+```{r}
+library(ggplot2)
+
+ggplot(df.train, aes(Survived)) + geom_bar()
+
+ggplot(df.train, aes(Pclass)) + geom_bar(aes(fill= factor(Pclass)))
+
+ggplot(df.train, aes(Sex)) + geom_bar(aes(fill= factor(Sex)))
+
+ggplot(df.train, aes(Age)) + geom_histogram(bins=20, alpha=0.5, fill="blue")
+
+ggplot(df.train, aes(SibSp)) + geom_bar()
+
+ggplot(df.train, aes(Fare)) + geom_histogram(fill="green", color="black")
+```
+3. Cleaning the data by filling the missing ages with the average ages of their class
+```{r}
+library(plotly)
+
+pl <- ggplot(df.train, aes(Pclass, Age)) + geom_boxplot(aes(group=Pclass,fill=factor(Pclass)),alpha=0.4) + scale_y_continuous(breaks = seq(min(0),max(80),by = 2)) + theme_bw()
+
+print(pl)
+
+ggplotly(pl) #we check the median age of each class
+
+##Imputation of age based on class
+impute_age <- function(age, class){
+  out <- age
+  for (i in 1:length(age)) {
+    if (is.na(age[i])) {
+      if (class[i]==1) {
+        out[i] <- 37
+      }else if (class[i]==2) {
+        out[i] <- 29
+      }else{
+        out[i] <- 24
+      }
+    }else{
+      out[i] <- age[i]
+    }
+  }
+  return(out)
+}
+
+#####
+fixed.ages <- impute_age(df.train$Age,df.train$Pclass)
+
+any(is.na(fixed.ages))
+
+df.train$Age <- fixed.ages #applying it to our data frame
+any(is.na(df.train$Age))
+
+missmap(df.train,main = "Imputation check",col = c("yellow","black"),legend = FALSE) #we check for missing values
+```
+
+4.Final clean-up of our data: remove what you won't use and check the data format
+```{r}
+str(df.train)
+
+library(dplyr)
+df.train <- select(df.train,-PassengerId,-Name,-Cabin,-Ticket) #deleting the selected columns
+head(df.train)
+str(df.train)
+
+```
+```{r}
+#We convert some of the int values as factors with levels
+df.train$Survived <- factor(df.train$Survived)
+df.train$Pclass <- factor(df.train$Pclass)
+df.train$Parch <- factor(df.train$Parch)
+df.train$SibSp <- factor(df.train$SibSp)
+
+str(df.train)
+```
+
+5. Training the model
+```{r}
+log.model <- glm(Survived ~ ., family = binomial(link = "logit"), data = df.train) #logistic regression model
+
+summary(log.model)
+```
+
+6. Let's start with predictions
+```{r}
+library(caTools)
+set.seed(101)
+split <- sample.split(df.train$Survived, SplitRatio = 0.7)
+
+final.train <- subset(df.train, split == TRUE)
+final.test <- subset(df.train, split == FALSE)
+
+final.log.model <- glm(Survived ~ ., family = binomial(link = "logit"), data = final.train )
+summary(final.log.model)
+
+#Predicting
+fitted.probabilities <- predict(final.log.model, final.test, type = "response")
+
+fitted.results <- ifelse(fitted.probabilities>0.5, 1, 0) #to set the categories out of the probabilities values
+
+misClassError <- mean(fitted.results != final.test$Survived) #Error
+
+print(1 - misClassError) #Accuracy
+```
+7. Let's create our **confussion matrix**
+```{r}
+table(final.test$Survived, fitted.probabilities>0.5)
+```
+
